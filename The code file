@@ -1,0 +1,126 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Step 2: Load Data
+data = pd.read_csv('/content/Employee address.csv')
+
+# Step 4: Feature Selection (assuming latitude and longitude are columns in the CSV)
+features = data[['Latitude', 'Longtitude']]
+
+# Step 5: Elbow Method Implementation
+wcss = []
+for i in range(1, 11):  # try different numbers of clusters from 1 to 10
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
+    kmeans.fit(features)
+    wcss.append(kmeans.inertia_)  # inertia_ calculates WCSS
+
+# Step 6: Plotting
+plt.plot(range(1, 11), wcss)
+plt.title('Elbow Method')
+plt.xlabel('Number of Clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+# Step 2: Load Data
+data = pd.read_csv('/content/Employee address.csv')
+
+# Step 4: Feature Selection (assuming latitude and longitude are columns in the CSV)
+features = data[['Latitude', 'Longtitude']]
+
+# Initialize a list to store silhouette scores
+silhouette_scores = []
+
+# Specify a range of cluster numbers to try
+cluster_range = range(2, 11)  # You can adjust this range based on your dataset and requirements
+
+# Iterate over each cluster number
+for n_clusters in cluster_range:
+    # Initialize KMeans with n_clusters
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    # Fit KMeans to the data
+    kmeans.fit(features)
+    # Compute the silhouette score
+    silhouette_avg = silhouette_score(features, kmeans.labels_)
+    # Append the silhouette score to the list
+    silhouette_scores.append(silhouette_avg)
+
+# Plot the silhouette scores
+plt.plot(cluster_range, silhouette_scores)
+plt.xlabel('Number of Clusters')
+plt.ylabel('Silhouette Score')
+plt.title('Silhouette Score for Different Numbers of Clusters')
+plt.show()
+
+
+import pandas as pd
+from sklearn.cluster import KMeans
+import folium
+
+# Step 2: Load Data
+data = pd.read_csv('/content/Employee address.csv')
+
+# Step 4: Feature Selection (assuming latitude and longitude are columns in the CSV)
+features = data[['Latitude', 'Longtitude']]
+
+# Step 5: Finalize Clustering with the optimal number of clusters
+kmeans = KMeans(n_clusters=7, random_state=42)
+kmeans.fit(features)
+data['cluster'] = kmeans.labels_
+
+# Step 6: Visualize the Clusters on a Map
+# Create a map centered around the mean latitude and longitude of the data
+map = folium.Map(location=[data['Latitude'].mean(), data['Longtitude'].mean()], zoom_start=10)
+
+# Define colors for clusters
+cluster_colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen']
+
+# Add markers for each data point, colored by cluster
+for index, row in data.iterrows():
+    folium.CircleMarker([row['Latitude'], row['Longtitude']],
+                        radius=5,
+                        color=cluster_colors[row['cluster']],
+                        fill=True,
+                        fill_color=cluster_colors[row['cluster']]
+                       ).add_to(map)
+
+# Save the map as an HTML file
+map.save("cluster_map.html")
+
+
+
+import pandas as pd
+from sklearn.cluster import KMeans
+
+# Step 2: Load Data
+data = pd.read_csv('/content/Employee address.csv')
+
+# Step 4: Feature Selection (assuming latitude and longitude are columns in the CSV)
+features = data[['Latitude', 'Longtitude']]
+
+# Step 5: Finalize Clustering with the optimal number of clusters
+kmeans = KMeans(n_clusters=7, random_state=42)
+kmeans.fit(features)
+data['cluster'] = kmeans.labels_
+
+# Step 6: Calculate Centroids for Each Cluster
+cluster_centroids = pd.DataFrame(columns=['Cluster', 'Latitude', 'Longtitude'])
+
+for cluster_label in range(7):
+    cluster_data = data[data['cluster'] == cluster_label]
+    centroid_lat = cluster_data['Latitude'].mean()
+    centroid_lon = cluster_data['Longtitude'].mean()
+    cluster_centroids.loc[len(cluster_centroids)] = {'Cluster': cluster_label,
+                                                  'Latitude': centroid_lat,
+                                                  'Longtitude': centroid_lon}
+
+# Step 7: Print Optimal Address (Centroid) for Each Cluster
+for index, row in cluster_centroids.iterrows():
+    print(f"Cluster {int(row['Cluster'])}: Latitude {row['Latitude']}, Longitude {row['Longtitude']}")
+
+
